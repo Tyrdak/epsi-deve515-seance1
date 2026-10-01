@@ -17,24 +17,13 @@ const $ = (selector) => document.querySelector(selector);
 const listEl = $("#products");
 const statusEl = $("#status");
 const searchEl = $("#search");
+const cartToggleEl = $("#cart-toggle");
 const cartCountEl = $("#cart-count");
 const cartEl = $("#cart");
 const cartItemsEl = $("#cart-items");
 const cartTotalEl = $("#cart-total");
 
-/** Fabrique une carte produit. À vous d'y brancher le bouton. */
-function createCard(product) {
-  const li = document.createElement("li");
-  li.className = "card";
-  li.dataset.id = product.id;
-  li.innerHTML = `
-    <img src="${product.thumbnail}" alt="" loading="lazy" />
-    <h3>${product.title}</h3>
-    <p class="price">${euros.format(product.price)}</p>
-    <button type="button">Ajouter</button>
-  `;
-  return li;
-}
+const el = (tag, props) => Object.assign(document.createElement(tag), props);
 
 async function loadProducts() {
   const res = await fetch(`${BASE_URL}/products?limit=20`);
@@ -43,58 +32,64 @@ async function loadProducts() {
   return data.products;
 }
 
-const cart = [];
+let state = { products: [], query: "", cart: [], cartOpen: false, status: "Chargement…" };
 
-function markAdded(button) {
-  button.textContent = "Ajouté";
-  button.classList.add("added");
+function setState(patch) {
+  state = { ...state, ...patch };
+  render(state);
 }
 
-function showCart() {
-  cartCountEl.textContent = cart.length;
-  cartItemsEl.replaceChildren(
-    ...cart.map((product) => {
-      const li = document.createElement("li");
-      const title = document.createElement("span");
-      const price = document.createElement("span");
-      title.textContent = product.title;
-      price.textContent = euros.format(product.price);
-      li.append(title, price);
-      return li;
+function visibleProducts({ products, query }) {
+  const needle = query.trim().toLowerCase();
+  return products.filter((product) => product.title.toLowerCase().includes(needle));
+}
+
+function productCard(product, added) {
+  const card = el("li", { className: "card" });
+  card.append(
+    el("img", { src: product.thumbnail, alt: "", loading: "lazy" }),
+    el("h3", { textContent: product.title }),
+    el("p", { className: "price", textContent: euros.format(product.price) }),
+    el("button", {
+      type: "button",
+      className: added ? "added" : "",
+      textContent: added ? "Ajouté" : "Ajouter",
+      disabled: added,
+      onclick: () => setState({ cart: [...state.cart, product] }),
     }),
   );
-  cartTotalEl.textContent = euros.format(cart.reduce((sum, product) => sum + product.price, 0));
+  return card;
 }
 
-function showProducts(products) {
+function cartItem(product) {
+  const item = el("li");
+  item.append(
+    el("span", { textContent: product.title }),
+    el("span", { textContent: euros.format(product.price) }),
+  );
+  return item;
+}
+
+function render(state) {
+  statusEl.textContent = state.status;
+  statusEl.hidden = !state.status;
+  searchEl.value = state.query;
   listEl.replaceChildren(
-    ...products.map((product) => {
-      const card = createCard(product);
-      const button = card.querySelector("button");
-      if (cart.includes(product)) markAdded(button);
-      button.addEventListener("click", () => {
-        if (cart.includes(product)) return;
-        cart.push(product);
-        markAdded(button);
-        showCart();
-      });
-      return card;
-    }),
+    ...visibleProducts(state).map((product) => productCard(product, state.cart.includes(product))),
   );
+  cartCountEl.textContent = state.cart.length;
+  cartEl.hidden = !state.cartOpen;
+  cartItemsEl.replaceChildren(...state.cart.map(cartItem));
+  cartTotalEl.textContent = euros.format(state.cart.reduce((sum, product) => sum + product.price, 0));
 }
 
-$("#cart-toggle").addEventListener("click", () => {
-  cartEl.hidden = !cartEl.hidden;
-});
+searchEl.addEventListener("input", (event) => setState({ query: event.target.value }));
+cartToggleEl.addEventListener("click", () => setState({ cartOpen: !state.cartOpen }));
+
+render(state);
 
 try {
-  const products = await loadProducts();
-  statusEl.hidden = true;
-  showProducts(products);
-  searchEl.addEventListener("input", () => {
-    const query = searchEl.value.trim().toLowerCase();
-    showProducts(products.filter((product) => product.title.toLowerCase().includes(query)));
-  });
+  setState({ products: await loadProducts(), status: "" });
 } catch (err) {
-  statusEl.textContent = `Erreur : ${err.message}`;
+  setState({ status: `Erreur : ${err.message}` });
 }
