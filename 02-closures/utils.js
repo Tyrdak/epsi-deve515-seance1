@@ -68,7 +68,17 @@ export function once(fn) {
  * DERNIERS arguments reçus. La fonction renvoyée expose aussi `.cancel()`.
  */
 export function debounce(fn, ms) {
-  // TODO
+  let timer;
+  function debounced(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      fn(...args);
+    }, ms);
+  }
+  debounced.cancel = function () {
+    clearTimeout(timer);
+  };
+  return debounced;
 }
 
 /**
