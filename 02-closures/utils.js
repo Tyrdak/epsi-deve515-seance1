@@ -86,5 +86,12 @@ export function debounce(fn, ms) {
  * un même jeu d'arguments ne provoque qu'un seul appel réel de `fn`.
  */
 export function memoize(fn) {
-  // TODO
+  let cache = {};
+  return function (...args) {
+    let cle = JSON.stringify(args);
+    if (cache[cle] === undefined) {
+      cache[cle] = fn(...args);
+    }
+    return cache[cle];
+  };
 }
