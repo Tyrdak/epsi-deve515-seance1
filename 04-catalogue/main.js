@@ -17,6 +17,7 @@ const $ = (selector) => document.querySelector(selector);
 const listEl = $("#products");
 const statusEl = $("#status");
 const searchEl = $("#search");
+const sortEl = $("#sort");
 const cartToggleEl = $("#cart-toggle");
 const cartCountEl = $("#cart-count");
 const cartEl = $("#cart");
@@ -32,16 +33,19 @@ async function loadProducts() {
   return data.products;
 }
 
-let state = { products: [], query: "", cart: [], cartOpen: false, status: "Chargement…" };
+let state = { products: [], query: "", cart: [], cartOpen: false, sort: "", status: "Chargement…" };
 
 function setState(patch) {
   state = { ...state, ...patch };
   render(state);
 }
 
-function visibleProducts({ products, query }) {
+function visibleProducts({ products, query, sort }) {
   const needle = query.trim().toLowerCase();
-  return products.filter((product) => product.title.toLowerCase().includes(needle));
+  const found = products.filter((product) => product.title.toLowerCase().includes(needle));
+  if (sort === "asc") return found.toSorted((a, b) => a.price - b.price);
+  if (sort === "desc") return found.toSorted((a, b) => b.price - a.price);
+  return found;
 }
 
 function productCard(product, added) {
@@ -74,6 +78,7 @@ function render(state) {
   statusEl.textContent = state.status;
   statusEl.hidden = !state.status;
   searchEl.value = state.query;
+  sortEl.value = state.sort;
   listEl.replaceChildren(
     ...visibleProducts(state).map((product) => productCard(product, state.cart.includes(product))),
   );
@@ -84,6 +89,7 @@ function render(state) {
 }
 
 searchEl.addEventListener("input", (event) => setState({ query: event.target.value }));
+sortEl.addEventListener("change", (event) => setState({ sort: event.target.value }));
 cartToggleEl.addEventListener("click", () => setState({ cartOpen: !state.cartOpen }));
 
 render(state);

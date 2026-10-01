@@ -20,6 +20,15 @@
         <input id="search" type="search" placeholder="clavier, casque, câble…" autocomplete="off" />
       </label>
 
+      <label class="search">
+        <span>Trier</span>
+        <select id="sort">
+          <option value="">Par défaut</option>
+          <option value="asc">Prix croissant</option>
+          <option value="desc">Prix décroissant</option>
+        </select>
+      </label>
+
       <p id="status" class="status">Chargement…</p>
       <ul id="products" class="grid"></ul>
     </main>
