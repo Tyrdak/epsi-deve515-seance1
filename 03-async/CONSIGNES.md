@@ -26,9 +26,9 @@ Le code est déjà découpé en modules ESM (`"type": "module"` dans le package.
 
 | Mode | Temps mesuré sur votre machine |
 |---|---|
-| séquentiel | ______ ms |
-| parallèle | ______ ms |
-| id renvoyé par `createProduct` | ______ |
+| séquentiel | 394 ms |
+| parallèle | 130 ms |
+| id renvoyé par `createProduct` | 195 |
 
 ## Bonus (+5)
 

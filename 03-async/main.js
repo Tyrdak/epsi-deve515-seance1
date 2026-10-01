@@ -30,3 +30,10 @@ console.log("\nProduit créé avec l'id :", created.id);
 
 // 4. TODO : appelez getProducts avec un faux fetch qui renvoie une 404,
 //    attrapez l'erreur avec try/catch et affichez son message.
+
+const notFoundFetch = async () => ({ ok: false, status: 404, json: async () => ({}) });
+try {
+  await getProducts(notFoundFetch);
+} catch (err) {
+  console.log("\nErreur attrapée :", err.message);
+}
