@@ -51,7 +51,15 @@ export function createCounter(start = 0) {
  * toujours le résultat de ce premier appel.
  */
 export function once(fn) {
-  // TODO
+  let dejaAppele = false;
+  let resultat;
+  return function (...args) {
+    if (dejaAppele == false) {
+      resultat = fn(...args);
+      dejaAppele = true;
+    }
+    return resultat;
+  };
 }
 
 /**
