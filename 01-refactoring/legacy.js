@@ -8,47 +8,39 @@
  * les charger : le corps des fonctions, lui, est du pur ES5.
  */
 
-export function getLabel(product) {
-  return product.name + " - " + product.price.toFixed(2) + " €";
+// destructuration pour pas répéter product. partout + template literal au lieu des +
+export function getLabel({ name, price }) {
+  return `${name} - ${price.toFixed(2)} €`;
 }
 
 export function cheapNames(list, max) {
-  var res = [];
-  for (var i = 0; i < list.length; i++) {
-    if (list[i].price < max) {
-      res.push(list[i].name.toUpperCase());
-    }
-  }
-  return res;
+  // filter pour garder les pas chers puis map pour mettre en majuscules
+  return list.filter((p) => p.price < max).map((p) => p.name.toUpperCase());
 }
 
 export function inStock(list) {
-  var res = [];
-  for (var i = 0; i < list.length; i++) {
-    if (list[i].stock > 0) {
-      res.push(list[i]);
-    }
-  }
-  return res;
+  // filter direct, plus besoin du tableau res
+  return list.filter((p) => p.stock > 0);
 }
 
 export function totalStockValue(list) {
-  var total = 0;
-  for (var i = 0; i < list.length; i++) {
-    total = total + list[i].price * list[i].stock;
-  }
+  // reduce pour faire la somme, on part de 0
+  const total = list.reduce((sum, p) => sum + p.price * p.stock, 0);
   return Math.round(total * 100) / 100;
 }
 
 export function withDefaults(options) {
   options = options || {};
-  var limit = options.limit || 10;
-  var sort = options.sort || "name";
+  // c'était le bug : avec || une limite de 0 devenait 10 car 0 est falsy
+  // ?? remplace seulement si c'est null ou undefined
+  const limit = options.limit ?? 10;
+  const sort = options.sort || "name";
   return { limit: limit, sort: sort };
 }
 
 export function ratingOf(product) {
-  if (product.rating && product.rating.rate !== undefined) {
+  // ?. évite le crash quand rating est null ou n'existe pas
+  if (product.rating?.rate !== undefined) {
     return product.rating.rate;
   }
   return "n/a";
@@ -59,25 +51,20 @@ export function categoryOf(product) {
 }
 
 export function mergeProduct(product, patch) {
-  var result = {};
-  for (var key in product) {
-    result[key] = product[key];
-  }
-  for (var k in patch) {
-    result[k] = patch[k];
-  }
-  return result;
+  // spread : on copie product puis patch écrase les clés en commun (original pas modifié)
+  return { ...product, ...patch };
 }
 
 export function tagsOf(list) {
-  var all = [];
-  for (var i = 0; i < list.length; i++) {
-    for (var j = 0; j < list[i].tags.length; j++) {
-      if (all.indexOf(list[i].tags[j]) === -1) {
-        all.push(list[i].tags[j]);
+  const all = [];
+  // forEach à la place des 2 boucles for, le reste est pareil
+  list.forEach((p) => {
+    p.tags.forEach((tag) => {
+      if (all.indexOf(tag) === -1) {
+        all.push(tag);
       }
-    }
-  }
+    });
+  });
   return all.sort();
 }
 
@@ -87,7 +74,16 @@ export function tagsOf(list) {
  * Les produits sans catégorie vont dans la clé "sans-categorie".
  */
 export function groupByCategory(list) {
-  throw new Error("TODO groupByCategory");
+  // reduce avec un objet vide au départ, on ajoute chaque produit dans sa catégorie
+  // categoryOf gère déjà le cas sans catégorie
+  return list.reduce((groups, p) => {
+    const key = categoryOf(p);
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(p);
+    return groups;
+  }, {});
 }
 
 // NOTE outillage : lors d'une réécriture assistée (Copilot, ChatGPT, Claude…),
