@@ -9,6 +9,12 @@
 
 export const BASE_URL = "https://dummyjson.com";
 
+async function getJson(url, fetchImpl, init) {
+  const res = await fetchImpl(url, init);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
 /**
  * GET {BASE_URL}/products?limit=10
  * Renvoie le TABLEAU de produits (data.products), pas l'objet complet.
@@ -16,7 +22,8 @@ export const BASE_URL = "https://dummyjson.com";
  * message contient le status, par exemple "HTTP 404".
  */
 export async function getProducts(fetchImpl = fetch) {
-  // TODO
+  const data = await getJson(`${BASE_URL}/products?limit=10`, fetchImpl);
+  return data.products;
 }
 
 /**
@@ -25,7 +32,7 @@ export async function getProducts(fetchImpl = fetch) {
  * Même règle d'erreur que getProducts.
  */
 export async function getCategories(fetchImpl = fetch) {
-  // TODO
+  return getJson(`${BASE_URL}/products/category-list`, fetchImpl);
 }
 
 /**
@@ -33,7 +40,11 @@ export async function getCategories(fetchImpl = fetch) {
  * { products, categories }.
  */
 export async function loadCatalog(fetchImpl = fetch) {
-  // TODO
+  const [products, categories] = await Promise.all([
+    getProducts(fetchImpl),
+    getCategories(fetchImpl),
+  ]);
+  return { products, categories };
 }
 
 /**
@@ -41,7 +52,11 @@ export async function loadCatalog(fetchImpl = fetch) {
  * Renvoie l'objet créé renvoyé par l'API (qui contient un `id`).
  */
 export async function createProduct(product, fetchImpl = fetch) {
-  // TODO
+  return getJson(`${BASE_URL}/products/add`, fetchImpl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(product),
+  });
 }
 
 /**
