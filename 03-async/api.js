@@ -8,6 +8,7 @@
  */
 
 export const BASE_URL = "https://dummyjson.com";
+const PRODUCTS_URL = `${BASE_URL}/products?limit=10`;
 
 async function getJson(url, fetchImpl, init) {
   const res = await fetchImpl(url, init);
@@ -22,7 +23,7 @@ async function getJson(url, fetchImpl, init) {
  * message contient le status, par exemple "HTTP 404".
  */
 export async function getProducts(fetchImpl = fetch) {
-  const data = await getJson(`${BASE_URL}/products?limit=10`, fetchImpl);
+  const data = await getJson(PRODUCTS_URL, fetchImpl);
   return data.products;
 }
 
@@ -64,5 +65,17 @@ export async function createProduct(product, fetchImpl = fetch) {
  * (AbortController) et lève alors une Error dont le message contient "timeout".
  */
 export async function getProductsWithTimeout(ms, fetchImpl = fetch) {
-  // TODO
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const data = await getJson(PRODUCTS_URL, fetchImpl, {
+      signal: controller.signal,
+    });
+    return data.products;
+  } catch (err) {
+    if (err.name === "AbortError") throw new Error(`timeout après ${ms} ms`);
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
