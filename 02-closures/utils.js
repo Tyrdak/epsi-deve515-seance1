@@ -32,7 +32,18 @@ export function scheduleLogs(log) {
  * que par ces trois méthodes.
  */
 export function createCounter(start = 0) {
-  // TODO
+  let count = start;
+  return {
+    increment: function () {
+      count++;
+    },
+    decrement: function () {
+      count--;
+    },
+    value: function () {
+      return count;
+    },
+  };
 }
 
 /**
