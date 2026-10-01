@@ -6,5 +6,5 @@
  *   await sleep(500);
  */
 export function sleep(ms) {
-  // TODO
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
