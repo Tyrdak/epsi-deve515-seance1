@@ -43,15 +43,58 @@ async function loadProducts() {
   return data.products;
 }
 
-// ---- Phase 1 : à vous ----
-// 1. Charger les produits et les afficher dans #products (masquer #status).
-// 2. Le champ #search filtre la liste (titre, insensible à la casse).
-// 3. Le bouton "Ajouter" incrémente #cart-count et passe le bouton en "Ajouté".
-// 4. #cart-toggle affiche / masque le panier (#cart) qui liste les produits ajoutés.
+const cart = [];
+
+function markAdded(button) {
+  button.textContent = "Ajouté";
+  button.classList.add("added");
+}
+
+function showCart() {
+  cartCountEl.textContent = cart.length;
+  cartItemsEl.replaceChildren(
+    ...cart.map((product) => {
+      const li = document.createElement("li");
+      const title = document.createElement("span");
+      const price = document.createElement("span");
+      title.textContent = product.title;
+      price.textContent = euros.format(product.price);
+      li.append(title, price);
+      return li;
+    }),
+  );
+  cartTotalEl.textContent = euros.format(cart.reduce((sum, product) => sum + product.price, 0));
+}
+
+function showProducts(products) {
+  listEl.replaceChildren(
+    ...products.map((product) => {
+      const card = createCard(product);
+      const button = card.querySelector("button");
+      if (cart.includes(product)) markAdded(button);
+      button.addEventListener("click", () => {
+        if (cart.includes(product)) return;
+        cart.push(product);
+        markAdded(button);
+        showCart();
+      });
+      return card;
+    }),
+  );
+}
+
+$("#cart-toggle").addEventListener("click", () => {
+  cartEl.hidden = !cartEl.hidden;
+});
 
 try {
   const products = await loadProducts();
-  // TODO
+  statusEl.hidden = true;
+  showProducts(products);
+  searchEl.addEventListener("input", () => {
+    const query = searchEl.value.trim().toLowerCase();
+    showProducts(products.filter((product) => product.title.toLowerCase().includes(query)));
+  });
 } catch (err) {
   statusEl.textContent = `Erreur : ${err.message}`;
 }
