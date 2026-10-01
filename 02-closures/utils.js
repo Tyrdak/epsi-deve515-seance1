@@ -9,11 +9,21 @@
  * (gardez la seconde en commentaire) et soyez capables d'expliquer pourquoi.
  */
 export function scheduleLogs(log) {
-  for (var i = 0; i < 3; i++) {
+  // avec let ca marche car i est different a chaque tour
+  for (let i = 0; i < 3; i++) {
     setTimeout(function () {
       log(i);
     }, 0);
   }
+
+  // autre facon de faire :
+  // for (var i = 0; i < 3; i++) {
+  //   (function (j) {
+  //     setTimeout(function () {
+  //       log(j);
+  //     }, 0);
+  //   })(i);
+  // }
 }
 
 /**
