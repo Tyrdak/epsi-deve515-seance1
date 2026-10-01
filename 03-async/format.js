@@ -4,14 +4,16 @@
  *   formatPrice(1234)  → "1 234,00 €"
  * Indice : Intl.NumberFormat fait tout le travail.
  */
+const euros = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+
 export function formatPrice(n) {
-  // TODO
+  return euros.format(n);
 }
 
 /**
  * productLine(product) : "Nom du produit — 19,90 €"
  * (tiret cadratin —, U+2014)
  */
-export function productLine(product) {
-  // TODO
+export function productLine({ title, price }) {
+  return `${title} — ${formatPrice(price)}`;
 }
